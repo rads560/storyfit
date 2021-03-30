@@ -16,8 +16,8 @@
             "category": "Arduino",
             "url": "https://github.com/rads560/storyfit/raw/main/custom-boards/EE459-AVR_0.0.1.zip",
             "archiveFileName": "EE459-AVR_0.0.1.zip",
-            "checksum": "SHA-256:036E33F72F58FCCD32DCDCCDF3533292F421F7805EE8C563E57EAA2E32ADB5AF",
-            "size": "6033008",
+            "checksum": "SHA-256:1CAD31F34F480A50131403C9CC489FCE8F3DAEF83216CD6B041B5A27726E0CD9",
+            "size": "6014616",
             "boards": [
               {"name": "EE459"}
             ],
