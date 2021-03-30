@@ -4,7 +4,7 @@ menu.cpu=Processor
 
 ##############################################################
 
-uno.name=EE459 ATMega328P
+ee459_atmega328p.name=EE459 ATMega328P
 
 ee459_atmega328p.vid.0=0x2341
 ee459_atmega328p.pid.0=0x0043
