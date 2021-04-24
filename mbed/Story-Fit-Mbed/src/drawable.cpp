@@ -1,15 +1,17 @@
 #include "drawable.h"
-#include "storyfit.h"
 
-Drawable::Drawable(Game* game)
-    :mGame(game),
+#include "scene.h"
+
+Drawable::Drawable(Scene* scene, int8_t priority)
+    :mScene(scene),
      mIsActive(true),
-     mPriority(0) {
+     mUpdate(true),
+     mPriority(priority) {
     // Add to the game's drawable list
-    mGame->AddDrawable(this);
+    mScene->AddDrawable(this);
 }
 
 Drawable::~Drawable() {
     // Remove from the game's drawable list
-    mGame->RemoveDrawable(this);
+    mScene->RemoveDrawable(this);
 }

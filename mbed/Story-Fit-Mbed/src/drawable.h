@@ -1,16 +1,26 @@
-class Drawable {
-    public:
-        Drawable(class Game* game);
-        ~Drawable();
+#ifndef STORYFIT_DRAWABLE_H
+    #define STORYFIT_DRAWABLE_H
+    #include <Arduino.h>
+    #include "boards.h"
 
-        virtual void Draw(class Adafruit_ST7789* tft);
+    #include <Adafruit_ST7789.h>
 
-        int8_t GetPriority() { return mPriority; }
-        void SetPriority(uint8_t priority) { mPriority = priority; }
-    protected:
-        class Game* mGame;
-        bool mIsActive;
-        int8_t mPriority;
-    private:
+    class Drawable {
+        public:
+            Drawable(class Scene* scene, int8_t priority = 0);
+            virtual ~Drawable();
 
-}
+            virtual void Draw(Adafruit_ST7789 &tft) {}
+
+            int8_t GetPriority() { return mPriority; }
+            void SetPriority(int8_t priority) { mPriority = priority; }
+            bool ShouldDraw() { return mIsActive && mUpdate; }
+        protected:
+            class Scene* mScene;
+            bool mIsActive;
+            bool mUpdate;
+            int8_t mPriority;
+        private:
+
+    };
+#endif
