@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #include <Adafruit_Sensor.h>
@@ -5,17 +7,18 @@
 #include <Adafruit_LIS3MDL.h>
 #include <Adafruit_LSM6DS33.h>
 #include <Adafruit_APDS9960.h>
-
-#include <SPI.h>
 #include <math.h>
 #include "MAX30105.h"
 #include "heartRate.h"
 
+#include <Fonts/romulus9pt7b.h>
+
 //=====================================================================================
 //    Pin Definitions
 //-------------------------------------------------------------------------------------
-// Arduino Uno
-#ifdef ARDUINO_AVR_UNO
+// Arduino Uno and EE459 ATMEGA328P
+#if defined(__AVR_ATmega328P__)
+  #define BOARD_NAME_TEST 0
   // I2C Configuration is automatic
   //    SDA => Pin 18 (A4/D18)
   //    SCL => Pin 19 (A5/D19)
@@ -36,36 +39,10 @@
   #define LED_G         5
   #define LED_B         4
   #define BUZZER        3
-#endif
 
-// EE459 ATMega328P
-#ifdef ARDUINO_EE459_ATMEGA328P
-  #define NO_SERIAL
-  // I2C Configuration is automatic
-  //    SDA => Pin 18 (Physical 27)
-  //    SCL => Pin 19 (Physical 28)
-  // SPI Configuration is automatic
-  //    SS => Pin 10 (Physical 16)
-  //    MOSI => Pin 11 (Physical 17)
-  //    MISO => Pin 12 (Physical 18)
-  //    SCK => Pin 13 (Physical 19)
-  #define TFT_CS        10    // Physical 16
-  #define TFT_RST       9     // Physical 15
-  #define TFT_DC        8     // Physical 14
-  //#define TFT_MOSI 11  // Data out
-  //#define TFT_SCLK 13  // Clock out
-  #define BUTTON_LEFT   A0    // Physical 23
-  #define BUTTON_CENTER A1    // Physical 24
-  #define BUTTON_RIGHT  A2    // Physical 25
-  #define LED_R         6     // Physical 12
-  #define LED_G         5     // Physical 11
-  #define LED_B         4     // Physical 6
-  #define BUZZER        3     // Physical 5
-#endif
-
-// Arduino Nano 33 BLE
-#ifdef ARDUINO_ARDUINO_NANO33BLE
-  #define NO_SERIAL
+// Arduino Nano 33 BLE and Adafruit Clue
+#elif defined(__CORTEX_M4)
+  #define BOARD_NAME_TEST 1
   // I2C Configuration is automatic
   //    SDA => Pin 18 (A4/D18)
   //    SCL => Pin 19 (A5/D19)
@@ -88,11 +65,11 @@
   #define BUZZER        D3
 
   #define NO_DTOSTRF    // The Nano 33 BLE doesn't have support for dtostrf(), so we have to make it ourselves
-#endif
 
 // Nucleo-F401RE
-#ifdef ARDUINO_NUCLEO_F401RE
-  #define NO_SERIAL
+#elif defined(_VARIANT_ARDUINO_STM32_)
+  
+  #define BOARD_NAME_TEST 2
   // I2C Configuration is automatic
   //    SDA => Pin 14 (PB9/D14)
   //    SCL => Pin 15 (PB8/D15)
@@ -117,6 +94,7 @@
   #define LED_B         4
   #define BUZZER        3
 #endif
+
 //=====================================================================================
 char* my_dtostrf (double val, signed char width, unsigned char prec, char *sout) {
   char fmt[20];
@@ -174,6 +152,7 @@ Adafruit_APDS9960 apds;
 uint16_t lastTime = 0;
 uint16_t frameTimer = 1000;
 uint16_t deltaTime = 0;
+int16_t textHeight = 9;
 
 // Variables to store sensor data
 float s_temp = 0.0f;
@@ -184,16 +163,16 @@ float s_compass[3] = {0.0f, 0.0f, 0.0f};
 float s_accel[3] = {0.0f, 0.0f, 0.0f};
 float s_gyro[3] = {0.0f, 0.0f, 0.0f};
 float s_heart = 0.0f;
-uint8_t s_light = 0;
+uint16_t s_light[4] = {0, 0, 0, 0};
 uint8_t s_prox = 0;
 bool b_left = false;
 bool b_center = false;
 bool b_right = false;
 
 void setup() {
-  pinMode(BUTTON_LEFT, INPUT);
-  pinMode(BUTTON_CENTER, INPUT);
-  pinMode(BUTTON_RIGHT, INPUT);
+  pinMode(BUTTON_LEFT, INPUT_PULLUP);
+  pinMode(BUTTON_CENTER, INPUT_PULLUP);
+  pinMode(BUTTON_RIGHT, INPUT_PULLUP);
 
   pinMode(LED_R, OUTPUT);
   pinMode(LED_G, OUTPUT);
@@ -202,8 +181,21 @@ void setup() {
   // put your setup code here, to run once:
 #ifndef NO_SERIAL
   Serial.begin(9600);
-  while(!Serial);    // time to get serial running
-  Serial.print(F("Story Fit Sensor Test\n"));
+  //while(!Serial);    // time to get serial running
+  delay(500);
+  Serial.print(F("Story Fit Sensor Test on board type: \n")); Serial.print(BOARD_NAME_TEST); Serial.print(" Name:"); Serial.println(BOARD_NAME);
+#endif
+#ifdef NRF52_SERIES
+  Serial.println("NRF52 Series Enabled");
+#endif
+#ifdef USE_SPI_DMA
+  Serial.println("SPI DMA Enabled");
+#endif
+#ifdef __SAMD51__
+  Serial.println("SAMD51 Enabled");
+#endif
+#ifdef ARDUINO_SAMD_ZERO
+  Serial.println("ARDUINO SAMD ZERO Enabled");
 #endif
 
   // Use this initializer (uncomment) if using a 1.3" or 1.54" 240x240 TFT:
@@ -212,68 +204,74 @@ void setup() {
   // SPI speed defaults to SPI_DEFAULT_FREQ defined in the library, you can override it here
   // Note that speed allowable depends on chip and quality of wiring, if you go too fast, you
   // may end up with a black screen some times, or all the time.
-  //tft.setSPISpeed(F_CPU/2);
+  //tft.setSPISpeed(8000000);
 
   // Setup BME280
-  unsigned status = bme.begin();  
   // You can also pass in a Wire library object like &Wire2
   // status = bme.begin(0x76, &Wire2)
-  if (!status) {
+  while (!bme.begin()) {
     #ifndef NO_SERIAL
       Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-      Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
-      Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
-      Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
-      Serial.print("        ID of 0x60 represents a BME 280.\n");
-      Serial.print("        ID of 0x61 represents a BME 680.\n");
     #endif
       digitalWrite(LED_R, HIGH);
-      while (1) delay(10);
+      delay(10);
   }
+  digitalWrite(LED_R, LOW);
 
   // Initialize heartrate sensor
-  if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
+  while (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
   {
   #ifndef NO_SERIAL
     Serial.println("MAX30105 was not found. Please check wiring/power. ");
   #endif
     digitalWrite(LED_G, HIGH);
-    while (1);
+    delay(10);
   }
+  digitalWrite(LED_G, LOW);
 
   particleSensor.setup(); //Configure sensor with default settings
   particleSensor.setPulseAmplitudeRed(0x0A); //Turn Red LED to low to indicate sensor is running
   particleSensor.setPulseAmplitudeGreen(0); //Turn off Green LED
 
   // Initialize compass
-  if (! lis3mdl.begin_I2C()) {
+  while (!lis3mdl.begin_I2C()) {
   #ifndef NO_SERIAL
     Serial.println("Failed to find LIS3MDL chip");
   #endif
-    while (1) { delay(10); }
+    digitalWrite(LED_R, HIGH);
+    digitalWrite(LED_G, HIGH);
+    delay(10);
   }
+  digitalWrite(LED_R, LOW);
+  digitalWrite(LED_G, LOW);
   lis3mdl.setPerformanceMode(LIS3MDL_MEDIUMMODE);
   lis3mdl.setOperationMode(LIS3MDL_CONTINUOUSMODE);
   lis3mdl.setDataRate(LIS3MDL_DATARATE_155_HZ);
   lis3mdl.setRange(LIS3MDL_RANGE_16_GAUSS);
 
   // Initialize IMU
-  if (!lsm6ds33.begin_I2C()) {
+  while (!lsm6ds33.begin_I2C()) {
   #ifndef NO_SERIAL
     Serial.println("Failed to find LSM6DS33 chip");
   #endif
-    while (1) {
-      delay(10);
-    }
+    digitalWrite(LED_R, HIGH);
+    digitalWrite(LED_B, HIGH);
+    delay(10);
   }
+  digitalWrite(LED_R, LOW);
+  digitalWrite(LED_B, LOW);
 
   // Initialize Ligh, Prox, and Guesture sensor
   if(!apds.begin()){
   #ifndef NO_SERIAL
-    Serial.println("failed to initialize device! Please check your wiring.");
+    Serial.println("failed to initialize APDS! Please check your wiring.");
   #endif
-    while (1) {delay(10);}
+    digitalWrite(LED_G, HIGH);
+    digitalWrite(LED_B, HIGH);
+    delay(10);
   }
+  digitalWrite(LED_G, LOW);
+  digitalWrite(LED_B, LOW);
   apds.enableProximity(true);
   apds.enableColor(true);
   
@@ -281,13 +279,14 @@ void setup() {
   digitalWrite(LED_B, HIGH);
 
   // StoryFit Splash
+  tft.setFont(&romulus9pt7b);
   tft.fillScreen(ST77XX_BLACK);
   tft.setCursor(0, 0);
   tft.setTextColor(ST77XX_WHITE);
   tft.setTextWrap(false);
-  tft.setTextSize(3);
+  tft.setTextSize(2);
   tft.print(
-    "StoryFit\nSensor Test"
+    "\nStoryFit\nSensor Test"
     );
   delay(2000);
   digitalWrite(LED_B, LOW);
@@ -296,13 +295,31 @@ void setup() {
   tft.fillScreen(ST77XX_BLACK);
 
   // Print text
-  tft.setCursor(0, 0);
   tft.setTextColor(ST77XX_WHITE);
   tft.setTextWrap(false);
-  tft.setTextSize(2);
-  tft.print(
-    "DeltaTime:\n\nTemp:\nHumidity:\nPressure:\nAltitude:\nCompass:\n\nAccelerometer:\n\nGyroscope:\n\nHeart:\nLight:\nProximity:"
-    );
+  tft.setTextSize(1);
+  tft.setCursor(0, textHeight);
+  tft.print("DeltaTime:");
+  tft.setCursor(0, textHeight*3);
+  tft.print("Temp:");
+  tft.setCursor(0, textHeight*4);
+  tft.print("Humidity:");
+  tft.setCursor(0, textHeight*5);
+  tft.print("Pressure:");
+  tft.setCursor(0, textHeight*6);
+  tft.print("Altitude:");
+  tft.setCursor(0, textHeight*7);
+  tft.print("Compass:");
+  tft.setCursor(0, textHeight*9);
+  tft.print("Accelerometer:");
+  tft.setCursor(0, textHeight*11);
+  tft.print("Gyroscope:");
+  tft.setCursor(0, textHeight*13);
+  tft.print("Heart:");
+  tft.setCursor(0, textHeight*14);
+  tft.print("Light:");
+  tft.setCursor(0, textHeight*15);
+  tft.print("Proximity:");
 }
 
 // Return temperature in degrees C
@@ -373,8 +390,8 @@ float getHeart() {
   return beatAvg;
 }
 
-uint8_t getLight() {
-  return 0;
+void getLight(uint16_t &r, uint16_t &g, uint16_t &b, uint16_t &c) {
+  apds.getColorData(&r, &g, &b, &c);
 }
 
 uint8_t getProx() {
@@ -397,28 +414,41 @@ void process_input() {
   sensors_event_t event;
   
   // Get data from sensors
+  //Serial.println("\ttemp");
   s_temp = getTemp(event);
 
+  //Serial.println("\thumidity");
   s_humidity = getHumidity(event);
 
+  //Serial.println("\tpressure");
   s_pressure = getPressure(event);
 
+  //Serial.println("\taltitude");
   s_altitude = getAltitude();
 
+  //Serial.println("\tcompass");
   getCompass(event, s_compass[0], s_compass[1], s_compass[2]);
 
+  //Serial.println("\taccel");
   getAccelerometer(event, s_accel[0], s_accel[1], s_accel[2]);
 
+  //Serial.println("\tgyro");
   getGyroscope(event, s_gyro[0], s_gyro[1], s_gyro[2]);
 
+  //Serial.println("\theart");
   s_heart = getHeart();
 
-  s_light = getLight();
+  //Serial.println("\tlight");
+  getLight(s_light[0], s_light[1], s_light[2], s_light[3]);
 
+  //Serial.println("\tprox");
   s_prox = getProx();
 
+  //Serial.println("\tleft");
   b_left = getButtonLeft();
+  //Serial.println("\tcenter");
   b_center = getButtonCenter();
+  //Serial.println("\tright");
   b_right = getButtonRight();
 }
 
@@ -426,33 +456,49 @@ void update_game() {
   // Update deltaTime
   uint16_t time = millis();
   deltaTime = time - lastTime;
-  lastTime = time;
   frameTimer += deltaTime;
+  //Serial.print("time: "); Serial.print(time); Serial.print(" lt: "); Serial.print(lastTime); Serial.print(" dt: "); Serial.print(deltaTime); Serial.print(" ft: "); Serial.println(frameTimer);
+  
+  lastTime = time;
 }
 
-#define TEXT_CHAR_HEIGHT 16
-#define TEXT_CHAR_WIDTH 12
+#define TEXT_CHAR_HEIGHT 12
+#define TEXT_CHAR_WIDTH 9
 
 #define TEXT_START_CHAR 10
 #define TEXT_END_CHAR 20
 #define TEXT_LENGTH 9
 
+void draw_text(int16_t x, int16_t y, char* text) {
+  int16_t bound_x = 0;
+  int16_t bound_y = 0;
+  uint16_t bound_w = 0;
+  uint16_t bound_h = 0;
+  
+  tft.setCursor(x, y);
+  tft.setTextColor(ST77XX_WHITE);
+  tft.getTextBounds(text, x, y, &bound_x, &bound_y, &bound_w, &bound_h);
+  tft.fillRect(bound_x, bound_y, bound_w, bound_h, ST77XX_BLACK);
+  tft.print(text);
+}
+
 void generate_output() {
   // Don't update the screen or send serial data more than once a second
   if (frameTimer >= 1000) {
-    frameTimer -= 1000;
+    frameTimer = 0;
     // Send sensor values over serial
   #ifndef NO_SERIAL
     Serial.println("------------------------------");
+    Serial.print("DeltaTime: "); Serial.print(deltaTime); Serial.println(" ms");
     Serial.print("Temp: "); Serial.print(s_temp); Serial.println(" *C");
     Serial.print("Humidity: "); Serial.print(s_humidity); Serial.println("%");
     Serial.print("Pressure: "); Serial.print(s_pressure); Serial.println(" Pa");
     Serial.print("Altitude: "); Serial.print(s_altitude); Serial.println(" m");
-    Serial.print("Compass: "); Serial.print(s_compass[0]); Serial.print(s_compass[1]); Serial.println(s_compass[2]);
-    Serial.print("Accelerometer: "); Serial.print(s_accel[0]); Serial.print(s_accel[1]); Serial.println(s_accel[2]);
-    Serial.print("Gyroscope: "); Serial.print(s_gyro[0]); Serial.print(s_gyro[1]); Serial.println(s_gyro[2]);
+    Serial.print("Compass: "); Serial.print(s_compass[0]); Serial.print(" "); Serial.print(s_compass[1]); Serial.print(" "); Serial.println(s_compass[2]);
+    Serial.print("Accelerometer: "); Serial.print(s_accel[0]); Serial.print(" "); Serial.print(s_accel[1]); Serial.print(" "); Serial.println(s_accel[2]);
+    Serial.print("Gyroscope: "); Serial.print(s_gyro[0]); Serial.print(" "); Serial.print(s_gyro[1]); Serial.print(" "); Serial.println(s_gyro[2]);
     Serial.print("Heart: "); Serial.print(s_heart); Serial.println(" bpm");
-    Serial.print("Light: "); Serial.print(s_light); Serial.println();
+    Serial.print("Light: "); Serial.print(s_light[0]); Serial.print(" "); Serial.print(s_light[1]); Serial.print(" "); Serial.print(s_light[2]); Serial.print(" "); Serial.println(s_light[3]);
     Serial.print("Proximity: "); Serial.print(s_prox); Serial.println();
   #endif
     
@@ -462,46 +508,55 @@ void generate_output() {
     char x_buf[7];
     char y_buf[7];
     char z_buf[7];
+    uint16_t line_x = 0;
+    uint16_t line_y = textHeight;
+    uint16_t cursor_x = 0;
+    uint16_t cursor_y = 0;
+    uint16_t bound_w = 0;
+    uint16_t bound_h = 0;
   
     // DeltaTime
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 0, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 0);
-    tft.setTextColor(ST77XX_WHITE);
+    // tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 0, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    // tft.setCursor(cursor_x, cursor_y);
+    // tft.setTextColor(ST77XX_WHITE);
     snprintf(databuf, sizeof(databuf), "%d ms", deltaTime);
-    tft.print(databuf);
+    // tft.getTextBounds("DeltaTime: ", line_x, line_y, &cursor_x, &cursor_y, &bound_w, &bound_h);
+
+    // tft.print(databuf);
+    draw_text(cursor_x, cursor_y, databuf);
   
     // Temperature
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 2*TEXT_CHAR_HEIGHT, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 2*TEXT_CHAR_HEIGHT);
+    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 2*textHeight, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 2*textHeight);
     float_to_cstring(s_temp, 4, 2, x_buf);
     snprintf(databuf, sizeof(databuf), "%s *C", x_buf);
     tft.print(databuf);
     
     // Humidity
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 3*TEXT_CHAR_HEIGHT, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 3*TEXT_CHAR_HEIGHT);
+    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 3*textHeight, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 3*textHeight);
     float_to_cstring(s_humidity, 4, 2, x_buf);
     snprintf(databuf, sizeof(databuf), "%s%%", x_buf);
     tft.print(databuf);
   
     // Pressure
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 4*TEXT_CHAR_HEIGHT, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 4*TEXT_CHAR_HEIGHT);
+    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 4*textHeight, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 4*textHeight);
     float_to_cstring(s_pressure, 4, 2, x_buf);
     snprintf(databuf, sizeof(databuf), "%sPa", x_buf);
     tft.print(databuf);
   
     
     // Altitude
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 5*TEXT_CHAR_HEIGHT, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 5*TEXT_CHAR_HEIGHT);
+    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 5*textHeight, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 5*textHeight);
     float_to_cstring(s_altitude, 4, 2, x_buf);
     snprintf(databuf, sizeof(databuf), "%s m", x_buf);
     tft.print(databuf);
   
     // Compass
-    tft.fillRect(0, 7*TEXT_CHAR_HEIGHT, 20*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(0, 7*TEXT_CHAR_HEIGHT);
+    tft.fillRect(0, 7*textHeight, 20*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(0, 7*textHeight);
     float_to_cstring(s_compass[0], 4, 2, x_buf);
     float_to_cstring(s_compass[1], 4, 2, y_buf);
     float_to_cstring(s_compass[2], 4, 2, z_buf);
@@ -509,8 +564,8 @@ void generate_output() {
     tft.print(linebuf);
   
     // Accelerometer
-    tft.fillRect(0, 9*TEXT_CHAR_HEIGHT, 20*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(0, 9*TEXT_CHAR_HEIGHT);
+    tft.fillRect(0, 9*textHeight, 20*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(0, 9*textHeight);
     float_to_cstring(s_accel[0], 4, 2, x_buf);
     float_to_cstring(s_accel[1], 4, 2, y_buf);
     float_to_cstring(s_accel[2], 4, 2, z_buf);
@@ -518,8 +573,8 @@ void generate_output() {
     tft.print(linebuf);
   
     // Gyroscope
-    tft.fillRect(0, 11*TEXT_CHAR_HEIGHT, 20*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(0, 11*TEXT_CHAR_HEIGHT);
+    tft.fillRect(0, 11*textHeight, 20*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(0, 11*textHeight);
     float_to_cstring(s_gyro[0], 4, 2, x_buf);
     float_to_cstring(s_gyro[1], 4, 2, y_buf);
     float_to_cstring(s_gyro[2], 4, 2, z_buf);
@@ -527,25 +582,25 @@ void generate_output() {
     tft.print(linebuf);
   
     // Heart
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 12*TEXT_CHAR_HEIGHT, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 12*TEXT_CHAR_HEIGHT);
+    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 12*textHeight, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 12*textHeight);
     float_to_cstring(s_heart, 4, 2, x_buf);
     snprintf(databuf, sizeof(databuf), "%s", x_buf);
     tft.print(databuf);
   
     // Light
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 13*TEXT_CHAR_HEIGHT, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 13*TEXT_CHAR_HEIGHT);
-    float_to_cstring(s_light, 4, 2, x_buf);
-    snprintf(databuf, sizeof(databuf), "%s", x_buf);
+    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 13*textHeight, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 13*textHeight);
+    snprintf(databuf, sizeof(databuf), "%d", s_light[3]);
     tft.print(databuf);
       
     // Prox
-    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 14*TEXT_CHAR_HEIGHT, TEXT_LENGTH*TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT, ST77XX_BLACK);
-    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 14*TEXT_CHAR_HEIGHT);
+    tft.fillRect(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 14*textHeight, TEXT_LENGTH*TEXT_CHAR_WIDTH, textHeight, ST77XX_BLACK);
+    tft.setCursor(TEXT_START_CHAR*TEXT_CHAR_WIDTH, 14*textHeight);
     float_to_cstring(s_prox, 4, 2, x_buf);
     snprintf(databuf, sizeof(databuf), "%s", x_buf);
     tft.print(databuf);
+    
   }
 
   // Left button pressed
