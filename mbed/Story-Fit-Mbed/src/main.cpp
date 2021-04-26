@@ -40,6 +40,7 @@ uint16_t deltaTime = 0;
 int16_t textHeight = 9;
 
 void setup() {
+  digitalWrite(STATUS_LED, HIGH);
   Game game = Game();
   game.Run();
 //   pinMode(BUTTON_LEFT, INPUT_PULLUP);
