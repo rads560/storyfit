@@ -1,7 +1,11 @@
 #include "storyfit.h"
 
 // #include <Adafruit_GFX.h>       // Core graphics library
-#include <Adafruit_ST7789.h>    // Display library
+#ifdef SF_DISPLAY_ST7735
+    #include <Adafruit_ST7735.h>
+#else
+    #include <Adafruit_ST7789.h>    // Display library
+#endif
 #include <Fonts/romulus9pt7b.h>     // Custom font
 
 #include "drawable.h"
@@ -9,7 +13,11 @@
 #include "sensors.h"
 #include "Scenes/Title.Scene.h"
 
-Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+#ifdef SF_DISPLAY_ST7735
+    Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+#else
+    Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+#endif
 
 Game::Game() {
     Initialize();
