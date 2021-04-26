@@ -52,9 +52,9 @@ namespace Sensors {
 }
 
 void Sensors::SensorsInit() {
-    pinMode(BUTTON_LEFT, INPUT_PULLUP);
-    pinMode(BUTTON_CENTER, INPUT_PULLUP);
-    pinMode(BUTTON_RIGHT, INPUT_PULLUP);
+    pinMode(BUTTON_LEFT, INPUT);
+    pinMode(BUTTON_CENTER, INPUT);
+    pinMode(BUTTON_RIGHT, INPUT);
 
     BME_Active = BME.begin();
 

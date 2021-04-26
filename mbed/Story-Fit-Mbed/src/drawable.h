@@ -10,7 +10,7 @@
             Drawable(class Scene* scene, int8_t priority = 0);
             virtual ~Drawable();
 
-            virtual void Draw(Adafruit_ST7789 &tft) {}
+            virtual void Draw(Adafruit_GFX &tft) {}
 
             int8_t GetPriority() { return mPriority; }
             void SetPriority(int8_t priority) { mPriority = priority; }

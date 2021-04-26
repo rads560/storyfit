@@ -14,7 +14,7 @@
             virtual void Unload() {}
             virtual void ProcessInput() {}
             virtual void Update(float deltaTime) {}
-            virtual void Draw(Adafruit_ST7789 &tft);
+            virtual void Draw(Adafruit_GFX &tft);
 
             void AddDrawable(class Drawable* draw);
             void RemoveDrawable(class Drawable* draw);
@@ -26,6 +26,7 @@
             static constexpr size_t MAX_DRAWABLES = 15;
             class Drawable* mDrawables[MAX_DRAWABLES];
             size_t mDrawablesSize = 0;
+            bool mUpdateAll = false;
         private:
     };
 #endif

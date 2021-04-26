@@ -49,9 +49,13 @@ void Game::Run() {
             digitalWrite(LED_R, HIGH);
             break;
         }
+        //Serial.println("P");
         ProcessInput();
+        //Serial.println("U");
         Update();
+        //Serial.println("G");
         GenerateOutput();
+        //Serial.println("DONE - "); Serial.println(millis());
     }
 }
 
@@ -62,7 +66,17 @@ void Game::ProcessInput() {
 
 void Game::Update() {
     uint16_t time = millis();
-    float deltaTime = (float)(time - mLastTime) / 1000.0f;
+    float deltaTime = 0.0f;
+    // See if time overflowed
+    if (time < mLastTime) {
+        uint16_t maxT = 0;
+        maxT--;
+        deltaTime = (float)(time + (maxT - mLastTime)) / 1000.0f;
+    }
+    else {
+        deltaTime = (float)(time - mLastTime) / 1000.0f;
+    }
+
     mFrameTime += deltaTime;
     mLastTime = time;
 

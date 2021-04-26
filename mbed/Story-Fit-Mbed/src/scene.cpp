@@ -23,13 +23,20 @@ Scene::~Scene() {
     }
 }
 
-void Scene::Draw(Adafruit_ST7789 &tft) {
-    // Loop over drawables in reverse order to maintain proper priority
-    for (int8_t i = mDrawablesSize - 1; i > 0; i--) {
-        if (mDrawables[i]->ShouldDraw()) {
+void Scene::Draw(Adafruit_GFX &tft) {
+    // Loop over drawables
+    for (int8_t i = mDrawablesSize - 1; i >= 0; i--) {
+        if (mDrawables[i]->ShouldDraw() || mUpdateAll) {
+            Serial.print("Drawing at i="); Serial.print(i); Serial.print("; priority="); Serial.println(mDrawables[i]->GetPriority());
+            if (!mDrawables[i]) {
+                Serial.print("Invalid Drawable at position "); Serial.print(i); Serial.print(" in size "); Serial.println(mDrawablesSize);
+                digitalWrite(LED_R, HIGH);
+                while(1);
+            }
             mDrawables[i]->Draw(tft);
         }
     }
+    mUpdateAll = false;
 }
 
 void Scene::AddDrawable(Drawable* draw) {
@@ -38,37 +45,24 @@ void Scene::AddDrawable(Drawable* draw) {
         mDrawablesSize++;
         return;
     }
-    for (size_t i = 0; i < mDrawablesSize; i++) {
-        if (mDrawables[i]->GetPriority() < draw->GetPriority()) {
-            // Swap until all items have been shifted
-            Drawable* temp1 = mDrawables[i];
-            mDrawables[i] = draw;
-            for (i = i + 1; i <= mDrawablesSize; i++) {
-                if (mDrawables[i] == nullptr) {
-                    mDrawables[i] = temp1;
-                    break;
-                }
-                else {
-                    Drawable* temp2 = mDrawables[i];
-                    mDrawables[i] = temp1;
-                    temp1 = temp2;
-                }
-            }
-            mDrawablesSize++;
-            return;
+    int8_t i = 0;
+    // Find the correct spot in the array
+    for(; i < mDrawablesSize; i++) {
+        if (draw->GetPriority() < mDrawables[i]->GetPriority()) {
+            break;
         }
-        else if (i == mDrawablesSize - 1) {
-            if (mDrawablesSize != MAX_DRAWABLES) {
-                mDrawables[mDrawablesSize] = draw;
-                mDrawablesSize++;
-                return;
-            }
-            else {
-                // If the drawable list is full, overwrite the last one
-                delete mDrawables[mDrawablesSize - 1];
-                mDrawables[mDrawablesSize] = draw;
-            }
-        }
+    }
+    // Shift everything over in the array to make room
+    Drawable* temp;
+    for(int8_t j = i+1; j < mDrawablesSize + 1 && j < MAX_DRAWABLES; j++) {
+        temp = mDrawables[j];
+        mDrawables[j] = mDrawables[j-1];
+    }
+    // Store the new drawable
+    mDrawables[i] = draw;
+    mDrawablesSize++;
+    if (mDrawablesSize > MAX_DRAWABLES) {
+        mDrawablesSize = MAX_DRAWABLES;
     }
 }
 
