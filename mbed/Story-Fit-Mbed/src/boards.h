@@ -110,12 +110,7 @@
     #endif
 
     #ifdef NO_DTOSTRF
-        char* my_dtostrf (double val, signed char width, unsigned char prec, char *sout) {
-            char fmt[20];
-            sprintf(fmt, "%%%d.%df", width, prec);
-            sprintf(sout, fmt, val);
-            return sout;
-        }
+        char* my_dtostrf (double val, signed char width, unsigned char prec, char *sout);
         #define float_to_cstring(val, width, prec, sout) my_dtostrf(val, width, prec, sout)
     #else
         #define float_to_cstring(val, width, prec, sout) dtostrf(val, width, prec, sout)
