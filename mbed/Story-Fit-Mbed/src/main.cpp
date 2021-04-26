@@ -4,17 +4,17 @@
 #include "storyfit.h"
 
 //=====================================================================================
-char* my_dtostrf (double val, signed char width, unsigned char prec, char *sout) {
-  char fmt[20];
-  sprintf(fmt, "%%%d.%df", width, prec);
-  sprintf(sout, fmt, val);
-  return sout;
-}
-#ifdef NO_DTOSTRF
-  #define float_to_cstring(val, width, prec, sout) my_dtostrf(val, width, prec, sout)
-#else
-  #define float_to_cstring(val, width, prec, sout) dtostrf(val, width, prec, sout)
-#endif
+// char* my_dtostrf (double val, signed char width, unsigned char prec, char *sout) {
+//   char fmt[20];
+//   sprintf(fmt, "%%%d.%df", width, prec);
+//   sprintf(sout, fmt, val);
+//   return sout;
+// }
+// #ifdef NO_DTOSTRF
+//   #define float_to_cstring(val, width, prec, sout) my_dtostrf(val, width, prec, sout)
+// #else
+//   #define float_to_cstring(val, width, prec, sout) dtostrf(val, width, prec, sout)
+// #endif
 
 
 // OPTION 1 (recommended) is to use the HARDWARE SPI pins, which are unique

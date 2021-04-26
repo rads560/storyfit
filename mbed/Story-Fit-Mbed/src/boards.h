@@ -1,5 +1,6 @@
 #ifndef STORYFIT_BOARDS_H
     #define STORYFIT_BOARDS_H
+    #define CLUE
     //=====================================================================================
     //    Pin Definitions
     //-------------------------------------------------------------------------------------
@@ -26,6 +27,32 @@
     #define LED_G         5
     #define LED_B         4
     #define BUZZER        3
+
+        // Arduino Nano 33 BLE and Adafruit Clue
+    #elif defined(CLUE) // dummy for now
+    #define BOARD_NAME_TEST 3
+    // I2C Configuration is automatic
+    //    SDA => Pin 18 (A4/D18)
+    //    SCL => Pin 19 (A5/D19)
+    // SPI Configuration is automatic
+    //    SS => Pin 10 (D10)
+    //    MOSI => Pin 11 (D11)
+    //    MISO => Pin 12 (D12)
+    //    SCK => Pin 13 (D13)
+    #define TFT_CS        5
+    #define TFT_RST       6 // Or set to -1 and connect to Arduino RESET pin
+    #define TFT_DC        7
+    //#define TFT_MOSI 11  // Data out
+    //#define TFT_SCLK 13  // Clock out
+    #define BUTTON_LEFT   1
+    #define BUTTON_CENTER 2
+    #define BUTTON_RIGHT  3
+    #define LED_R         4 
+    #define LED_G         8
+    #define LED_B         9
+    #define BUZZER        10
+
+    #define NO_DTOSTRF    // The Nano 33 BLE doesn't have support for dtostrf(), so we have to make it ourselves
 
     // Arduino Nano 33 BLE and Adafruit Clue
     #elif defined(__CORTEX_M4)
@@ -83,6 +110,12 @@
     #endif
 
     #ifdef NO_DTOSTRF
+        char* my_dtostrf (double val, signed char width, unsigned char prec, char *sout) {
+            char fmt[20];
+            sprintf(fmt, "%%%d.%df", width, prec);
+            sprintf(sout, fmt, val);
+            return sout;
+        }
         #define float_to_cstring(val, width, prec, sout) my_dtostrf(val, width, prec, sout)
     #else
         #define float_to_cstring(val, width, prec, sout) dtostrf(val, width, prec, sout)
