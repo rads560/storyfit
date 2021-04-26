@@ -1,7 +1,11 @@
 #include "storyfit.h"
 
 // #include <Adafruit_GFX.h>       // Core graphics library
-#include <Adafruit_ST7789.h>    // Display library
+#ifdef SF_DISPLAY_ST7735
+    #include <Adafruit_ST7735.h>
+#else
+    #include <Adafruit_ST7789.h>    // Display library
+#endif
 #include <Fonts/romulus9pt7b.h>     // Custom font
 
 #include "drawable.h"
