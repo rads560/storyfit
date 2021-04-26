@@ -2,13 +2,15 @@
 
 #include "scene.h"
 
-Rectangle::Rectangle(Scene* scene, int8_t priority, const char* name, int16_t x, int16_t y, uint16_t width, uint16_t height, RectType type)
+Rectangle::Rectangle(Scene* scene, int8_t priority, const char* name, int16_t x, int16_t y, uint16_t width, uint16_t height, RectType type, uint16_t fillColor, uint16_t outlineColor)
     : Drawable(scene, priority, name),
       mPosX(x),
       mPosY(y),
       mWidth(width),
       mHeight(height),
-      mType(type) {
+      mType(type),
+      mColor(fillColor),
+      mOutline(outlineColor) {
     mUpdate = true;
     mIsActive = true;
 }

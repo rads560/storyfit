@@ -81,4 +81,10 @@
     #define LED_B         6
     #define BUZZER        3
     #endif
+
+    #ifdef NO_DTOSTRF
+        #define float_to_cstring(val, width, prec, sout) my_dtostrf(val, width, prec, sout)
+    #else
+        #define float_to_cstring(val, width, prec, sout) dtostrf(val, width, prec, sout)
+    #endif
 #endif

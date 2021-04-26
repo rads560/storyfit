@@ -15,10 +15,12 @@
             int8_t GetPriority() { return mPriority; }
             void SetPriority(int8_t priority) { mPriority = priority; }
             bool ShouldDraw() { return mIsActive && mUpdate; }
-            bool mIsActive;
-            bool mUpdate;
+            void SetIsActive(bool active) { mIsActive = active; mUpdate = true; }
+
             const char* mName;
         protected:
+            bool mIsActive;
+            bool mUpdate;
             class Scene* mScene;
             int8_t mPriority;
         private:

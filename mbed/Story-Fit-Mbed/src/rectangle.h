@@ -7,7 +7,7 @@ class Rectangle : public Drawable {
             FilledOutline,
             Outline
         };
-        Rectangle(class Scene* scene, int8_t priority, const char* name, int16_t x, int16_t y, uint16_t width, uint16_t height, RectType type = RectType::Filled);
+        Rectangle(class Scene* scene, int8_t priority, const char* name, int16_t x, int16_t y, uint16_t width, uint16_t height, RectType type = RectType::Filled, uint16_t fillColor = 0xFFFF, uint16_t outlineColor = 0x0000);
 
         void SetX(uint16_t x) { mPosX = x; mUpdate = true; }
         void SetY(uint16_t y) { mPosY = y; mUpdate = true; }
