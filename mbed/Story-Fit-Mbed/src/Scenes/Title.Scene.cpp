@@ -19,11 +19,11 @@ void TitleScene::Load() {
     // Serial.println("StoryFit Title Screen");
 
     //Title screen Big text
-    tbTitle = new TextBox(this, 1, 30, 80, "StoryFit", 0, 0, 0x4E59, 0x4970, 3);
+    tbTitle = new TextBox(this, 1, "Title", 30, 80, "StoryFit", 0, 0, 0x4E59, 0x4970, 3);
     // Title screen prompt
-    tbPrompt = new TextBox(this, 0, 70, 190, "Press Start", 0, 0, 0xFFFF, 0x4970, 1);
+    tbPrompt = new TextBox(this, 0, "Prompt", 70, 190, "Press Start", 0, 0, 0xFFFF, 0x4970, 1);
     // Title screen background
-    Rectangle* bg = new Rectangle(this, 15, 0, 0, 240, 240);
+    Rectangle* bg = new Rectangle(this, 15, "Background", 0, 0, 240, 240);
     bg->SetColor(0x4970);
     // Setup flashing
     mTimer = PROMPT_FLASH_PERIOD;

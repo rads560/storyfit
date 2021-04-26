@@ -7,7 +7,7 @@
 
     class Drawable {
         public:
-            Drawable(class Scene* scene, int8_t priority = 0);
+            Drawable(class Scene* scene, int8_t priority = 0, const char* name = "kek");
             virtual ~Drawable();
 
             virtual void Draw(Adafruit_GFX &tft) {}
@@ -15,10 +15,11 @@
             int8_t GetPriority() { return mPriority; }
             void SetPriority(int8_t priority) { mPriority = priority; }
             bool ShouldDraw() { return mIsActive && mUpdate; }
-        protected:
-            class Scene* mScene;
             bool mIsActive;
             bool mUpdate;
+            const char* mName;
+        protected:
+            class Scene* mScene;
             int8_t mPriority;
         private:
 

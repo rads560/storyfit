@@ -2,14 +2,15 @@
 
 #include "scene.h"
 
-Rectangle::Rectangle(Scene* scene, int8_t priority, uint16_t x, uint16_t y, uint16_t width, uint16_t height, RectType type)
-    : Drawable(scene, priority),
+Rectangle::Rectangle(Scene* scene, int8_t priority, const char* name, int16_t x, int16_t y, uint16_t width, uint16_t height, RectType type)
+    : Drawable(scene, priority, name),
       mPosX(x),
       mPosY(y),
       mWidth(width),
       mHeight(height),
       mType(type) {
-    
+    mUpdate = true;
+    mIsActive = true;
 }
 
 void Rectangle::Draw(Adafruit_GFX &tft) {
@@ -41,6 +42,7 @@ void Rectangle::Draw(Adafruit_GFX &tft) {
           tft.drawRoundRect(mPosX, mPosY, mWidth, mHeight, mRadius, mOutline);
         }
         break;
+      default: return;
     }
     mUpdate = false;
   }

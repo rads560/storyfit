@@ -2,11 +2,12 @@
 
 #include "scene.h"
 
-Drawable::Drawable(Scene* scene, int8_t priority)
+Drawable::Drawable(Scene* scene, int8_t priority, const char* name)
     :mScene(scene),
      mIsActive(true),
      mUpdate(true),
-     mPriority(priority) {
+     mPriority(priority),
+     mName(name) {
     // Add to the game's drawable list
     mScene->AddDrawable(this);
 }

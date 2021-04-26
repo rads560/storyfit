@@ -2,8 +2,8 @@
 
 #include <Fonts/romulus9pt7b.h>     // Custom font
 
-TextBox::TextBox(Scene* scene, int8_t priority, uint16_t x, uint16_t y, const char* text, uint16_t maxWidth, uint16_t maxHeight, uint16_t textColor, uint16_t backgroundColor, uint8_t textSize)
-    : Drawable(scene, priority),
+TextBox::TextBox(Scene* scene, int8_t priority, const char* name, int16_t x, int16_t y, const char* text, uint16_t maxWidth, uint16_t maxHeight, uint16_t textColor, uint16_t backgroundColor, uint8_t textSize)
+    : Drawable(scene, priority, name),
       mText(text),
       mPosX(x),
       mPosY(y),

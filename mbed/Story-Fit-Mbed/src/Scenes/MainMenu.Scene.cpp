@@ -23,33 +23,40 @@ MainMenu::~MainMenu() {
 
 void MainMenu::Load() {
     //Main Menu Title text
-    TextBox* tbTitle = new TextBox(this, 0, 5, 5, "StoryFit", 0, 0, 0xFFFF, 0x0000, 3);
+    TextBox* tbTitle = new TextBox(this, 0, "Menu Title", 5, 5, "StoryFit", 0, 0, 0xFFFF, 0x0000, 3);
     // Title text border
-    Rectangle* titleBorder = new Rectangle(this, 1, -1, -1, 242, 10 + tbTitle->GetHeight(), Rectangle::RectType::FilledOutline);
+    Rectangle* titleBorder = new Rectangle(this, 1, "Menu Title Border", -1, -1, 242, 10 + tbTitle->GetHeight(), Rectangle::RectType::FilledOutline);
     titleBorder->SetColor(0x0000);
     titleBorder->SetOutlineColor(0xFFFF);
 
     // Start Button
-    mStartText = new TextBox(this, 2, 0, 99, "Quest!", 120, 20, HIGHLIGH_TEXT_COLOR, HIGHLIGHT_BG_COLOR, 2);
-    mStartBorder = new Rectangle(this, 3, -1, 99, 120, 22, Rectangle::RectType::FilledOutline);
+    mStartText = new TextBox(this, 2, "Quest Button", 0, 98, "Quest!", 120, 20, HIGHLIGH_TEXT_COLOR, HIGHLIGHT_BG_COLOR, 2);
+    mStartBorder = new Rectangle(this, 3, "Quest Border", -1, mStartText->GetY() - 1, 120, mStartText->GetHeight() + 2, Rectangle::RectType::FilledOutline);
     mStartBorder->SetColor(HIGHLIGHT_BG_COLOR);
     mStartBorder->SetOutlineColor(HIGHLIGH_TEXT_COLOR);
 
     // Options Button
-    mOptionsText = new TextBox(this, 2, 0, 120, "Options", 120, 20, BUTTON_TEXT_COLOR, BUTTON_BG_COLOR, 2);
-    mOptionsBorder = new Rectangle(this, 3, -1, 120, 120, 22, Rectangle::RectType::FilledOutline);
+    mOptionsText = new TextBox(this, 2, "Option Button", 0, mStartText->GetY() + mStartText->GetHeight() + 2, "Options", 120, 20, BUTTON_TEXT_COLOR, BUTTON_BG_COLOR, 2);
+    mOptionsBorder = new Rectangle(this, 3, "Option Border", -1, mOptionsText->GetY() - 1, 120, mOptionsText->GetHeight() + 2, Rectangle::RectType::FilledOutline);
     mOptionsBorder->SetColor(BUTTON_BG_COLOR);
     mOptionsBorder->SetOutlineColor(BUTTON_TEXT_COLOR);
 
     // Quit Button
-    mQuitText = new TextBox(this, 2, 0, 141, "Quit", 120, 20, BUTTON_TEXT_COLOR, BUTTON_BG_COLOR, 2);
-    mQuitBorder = new Rectangle(this, 3, -1, 141, 120, 22, Rectangle::RectType::FilledOutline);
+    mQuitText = new TextBox(this, 2, "Quit Button", 0, mOptionsText->GetY() + mOptionsText->GetHeight() + 2, "Quit", 120, 20, BUTTON_TEXT_COLOR, BUTTON_BG_COLOR, 2);
+    mQuitBorder = new Rectangle(this, 3, "Quit Border", -1, mQuitText->GetY() - 1, 120, mQuitText->GetHeight() + 2, Rectangle::RectType::FilledOutline);
     mQuitBorder->SetColor(BUTTON_BG_COLOR);
     mQuitBorder->SetOutlineColor(BUTTON_TEXT_COLOR);
 
     // Main Menu background
-    Rectangle* bg = new Rectangle(this, 15, 0, 0, 240, 240);
+    Rectangle* bg = new Rectangle(this, 15, "Menu Background", 0, 0, 240, 240);
     bg->SetColor(0x2945);
+
+    
+    for(int i = 0; i < mDrawablesSize; i++) {
+        if (mDrawables[i] == mOptionsBorder) {
+            Serial.print("Found options border at i="); Serial.println(i);
+        }
+    }
 }
 
 void MainMenu::Unload() {

@@ -7,12 +7,16 @@ class Rectangle : public Drawable {
             FilledOutline,
             Outline
         };
-        Rectangle(class Scene* scene, int8_t priority, uint16_t x, uint16_t y, uint16_t width, uint16_t height, RectType type = RectType::Filled);
+        Rectangle(class Scene* scene, int8_t priority, const char* name, int16_t x, int16_t y, uint16_t width, uint16_t height, RectType type = RectType::Filled);
 
         void SetX(uint16_t x) { mPosX = x; mUpdate = true; }
         void SetY(uint16_t y) { mPosY = y; mUpdate = true; }
+        int16_t GetX() { return mPosX; }
+        int16_t GetY() { return mPosY; }
         void SetWidth(uint16_t w) { mWidth = w; mUpdate = true; }
         void SetHeight(uint16_t h) { mHeight = h; mUpdate = true; }
+        uint16_t GetWidth() { return mWidth; }
+        uint16_t GetHeight() { return mHeight; }
         void SetColor(uint16_t c) { mColor = c; mUpdate = true; }
         void SetRadius(uint16_t r) { mRadius = r; mUpdate = true; }
         void SetOutlineColor(uint16_t c) { mOutline = c; mUpdate = true; }
@@ -20,8 +24,8 @@ class Rectangle : public Drawable {
 
         void Draw(Adafruit_GFX &tft) override;
     protected:
-        uint16_t mPosX = 0;
-        uint16_t mPosY = 0;
+        int16_t mPosX = 0;
+        int16_t mPosY = 0;
         uint16_t mWidth = 0;
         uint16_t mHeight = 0;
         uint16_t mColor = 0xFFFF;

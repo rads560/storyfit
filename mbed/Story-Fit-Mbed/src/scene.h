@@ -23,7 +23,7 @@
             class Game* mGame;
             Scene* mParent;
 
-            static constexpr size_t MAX_DRAWABLES = 15;
+            static constexpr size_t MAX_DRAWABLES = 30;
             class Drawable* mDrawables[MAX_DRAWABLES];
             size_t mDrawablesSize = 0;
             bool mUpdateAll = false;
