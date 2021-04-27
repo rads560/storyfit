@@ -2,7 +2,6 @@
 
 #ifndef STORYFIT_BOARDS_H
     #define STORYFIT_BOARDS_H
-    #define CLUE
     //=====================================================================================
     //    Pin Definitions
     //-------------------------------------------------------------------------------------
@@ -29,35 +28,6 @@
     #define LED_G         5
     #define LED_B         4
     #define BUZZER        3
-
-        // Arduino Nano 33 BLE and Adafruit Clue
-    #elif defined(CLUE) // dummy for now
-    #define BOARD_NAME_TEST 3
-    // I2C Configuration is automatic
-    //    SDA => Pin 20
-    //    SCL => Pin 19
-    // SPI Configuration is automatic
-    //    SS => Pin 16
-    //    MOSI => Pin 15
-    //    MISO => Pin 14
-    //    SCK => Pin 13
-    #define TFT_CS        31
-    #define TFT_RST       33 // Or set to -1 and connect to Arduino RESET pin
-    #define TFT_DC        32
-    #define TFT_LITE      34
-    //#define TFT_MOSI 11  // Data out
-    //#define TFT_SCLK 13  // Clock out
-    #define BUTTON_LEFT   2
-    #define BUTTON_CENTER 5 // not built in
-    #define BUTTON_RIGHT  11
-    #define LED_R         4
-    #define LED_G         8
-    #define LED_B         9
-    #define NEOPIXEL      18
-    #define STATUS_LED    17
-    #define BUZZER        46
-
-    #define NO_DTOSTRF    // The Nano 33 BLE doesn't have support for dtostrf(), so we have to make it ourselves
 
     // Arduino Nano 33 BLE and Adafruit Clue
     #elif defined(__CORTEX_M4)
@@ -103,6 +73,8 @@
     #define TFT_CS        10
     #define TFT_RST       9     // Or set to -1 and connect to Arduino RESET pin
     #define TFT_DC        8
+    #define TFT_LITE      7
+    #define STATUS_LED    LED_BUILTIN
     //#define TFT_MOSI 11  // Data out
     //#define TFT_SCLK 13  // Clock out
     #define BUTTON_LEFT   46    //A0
@@ -112,6 +84,36 @@
     #define LED_G         4
     #define LED_B         6
     #define BUZZER        3
+
+    // Arduino Nano 33 BLE and Adafruit Clue
+    #else
+    #define CLUE
+    #define BOARD_NAME_TEST 3
+    // I2C Configuration is automatic
+    //    SDA => Pin 20
+    //    SCL => Pin 19
+    // SPI Configuration is automatic
+    //    SS => Pin 16
+    //    MOSI => Pin 15
+    //    MISO => Pin 14
+    //    SCK => Pin 13
+    #define TFT_CS        31
+    #define TFT_RST       33 // Or set to -1 and connect to Arduino RESET pin
+    #define TFT_DC        32
+    #define TFT_LITE      34
+    //#define TFT_MOSI 11  // Data out
+    //#define TFT_SCLK 13  // Clock out
+    #define BUTTON_LEFT   2
+    #define BUTTON_CENTER 5 // not built in
+    #define BUTTON_RIGHT  11
+    #define LED_R         4
+    #define LED_G         8
+    #define LED_B         9
+    #define NEOPIXEL      18
+    #define STATUS_LED    17
+    #define BUZZER        46
+
+    #define NO_DTOSTRF    // The Nano 33 BLE doesn't have support for dtostrf(), so we have to make it ourselves
     #endif
 
     #ifdef NO_DTOSTRF

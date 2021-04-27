@@ -13,8 +13,11 @@
 #include "sensors.h"
 #include "Scenes/Title.Scene.h"
 
-// Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, 30, 29, TFT_RST);
-Adafruit_ST7789 tft = Adafruit_ST7789(&SPI1, TFT_CS, TFT_DC, TFT_RST);
+#if defined(CLUE)
+    Adafruit_ST7789 tft = Adafruit_ST7789(&SPI1, TFT_CS, TFT_DC, TFT_RST);
+#else
+    Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+#endif
 
 Game::Game() {
     Initialize();
@@ -42,13 +45,16 @@ void Game::Initialize() {
     // Initialize display
     analogWrite(TFT_LITE, 255);
     tft.init(240, 240);
-    tft.setRotation(1);
-    // Fill with black
-    // tft.fillScreen(0x0000);
     tft.fillScreen(0xFFFF);
+    
+    // Rotate screen for CLUE
+    #if defined(CLUE)
+    tft.setRotation(1);
+    // Set screen refresh rate control
     uint8_t rtna = 0x01;
     tft.sendCommand(0xC6, &rtna, 1);
     Serial.print("HERE");
+    #endif
     // Setup first scene (title screen)
     mCurrentScene = nullptr;
     LoadScene(new TitleScene(this, nullptr));
