@@ -1,3 +1,9 @@
+/*
+*   StoryFit
+*   EE459 Spring 2021
+*   Team 13
+*   Radhika Agrawal and Justin Wilford
+*/
 #include "scene.h"
 
 class BMETest : public Scene {

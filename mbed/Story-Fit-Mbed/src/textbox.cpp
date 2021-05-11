@@ -1,3 +1,9 @@
+/*
+*   StoryFit
+*   EE459 Spring 2021
+*   Team 13
+*   Radhika Agrawal and Justin Wilford
+*/
 #include "textbox.h"
 
 #include "Fonts/romulus9pt7b.h"     // Custom font

@@ -1,3 +1,9 @@
+/*
+*   StoryFit
+*   EE459 Spring 2021
+*   Team 13
+*   Radhika Agrawal and Justin Wilford
+*/
 #ifndef STORYFIT_SCENE_H
     #define STORYFIT_SCENE_H
     #include <Arduino.h>
